@@ -32,7 +32,7 @@ npx wrangler pages project create
 npm run deploy:pages
 ```
 
-Se o projeto Pages `perguntez` já existir, não execute `pages project create`
+Se o projeto Pages `perguntezsite` já existir, não execute `pages project create`
 novamente; basta executar `npm run deploy:pages`.
 
 ### 2. Crie e conecte o banco D1
@@ -41,7 +41,7 @@ No painel Cloudflare:
 
 1. Abra **Storage & Databases → D1 SQL Database** e crie um banco chamado
    `perguntez-db` (ou escolha o banco D1 que já contém seus dados).
-2. Abra **Workers & Pages → perguntez → Settings → Bindings**.
+2. Abra **Workers & Pages → perguntezsite → Settings → Bindings**.
 3. Adicione um binding do tipo **D1 database**.
 4. Em **Variable name**, escreva exatamente `DB`.
 5. Selecione o banco `perguntez-db`.

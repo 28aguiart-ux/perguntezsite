@@ -219,9 +219,6 @@ const REQUIRED_COLUMNS = {
     texto: "TEXT NOT NULL DEFAULT ''", votes: "INTEGER NOT NULL DEFAULT 0",
     melhor: "INTEGER NOT NULL DEFAULT 0", created_at: "TEXT",
   },
-  messages: {
-    is_read: "INTEGER NOT NULL DEFAULT 0",
-  },
 };
 
 const SESSION_COLUMNS = ["id", "user_id", "token_hash", "expires_at", "created_at"];
@@ -617,7 +614,7 @@ async function handle(request, env, path, method) {
                       FROM notifications n JOIN users actor ON actor.id = n.actor_id
                       LEFT JOIN questions q ON q.id = n.question_id
                       WHERE n.user_id = ? ORDER BY n.id DESC LIMIT 200`).bind(user.id),
-      env.DB.prepare(`SELECT m.id, m.text, m.created_at, m.is_read, s.username AS sender, r.username AS receiver
+      env.DB.prepare(`SELECT m.id, m.text, m.created_at, s.username AS sender, r.username AS receiver
                       FROM messages m JOIN users s ON s.id = m.sender_id JOIN users r ON r.id = m.receiver_id
                       WHERE m.sender_id = ? OR m.receiver_id = ? ORDER BY m.id DESC LIMIT 1000`).bind(user.id, user.id),
     ]);
@@ -698,35 +695,6 @@ async function handle(request, env, path, method) {
     const result = await env.DB.prepare("INSERT INTO messages (sender_id, receiver_id, text) VALUES (?, ?, ?)").bind(user.id, target.id, text).run();
     await notify(env, target.id, user.id, "message", null, null, "Enviou uma mensagem");
     return json({ ok: true, id: result.meta.last_row_id }, 201);
-  }
-
-  if (method === "POST" && path === "/social/message/read") {
-    const user = await requireUser(request, env, "Não autenticado.");
-    const b = await readJson(request);
-    const from = await env.DB.prepare("SELECT id FROM users WHERE username = ? COLLATE NOCASE")
-      .bind(String(b.from || "").trim()).first();
-    if (!from) return json({ ok: true });
-    await env.DB.prepare("UPDATE messages SET is_read = 1 WHERE receiver_id = ? AND sender_id = ? AND is_read = 0")
-      .bind(user.id, from.id).run();
-    return json({ ok: true });
-  }
-
-  // Assinatura barata do estado da rede: o navegador consulta a cada poucos segundos
-  // e só baixa tudo de novo quando algo mudou (nova pergunta, resposta, curtida, mensagem...).
-  if (method === "GET" && path === "/pulso") {
-    const user = await currentUser(request, env);
-    const uid = user ? user.id : 0;
-    const r = await env.DB.prepare(`SELECT
-        (SELECT COUNT(*) || ':' || IFNULL(MAX(id),0) FROM questions) AS q,
-        (SELECT COUNT(*) || ':' || IFNULL(MAX(id),0) || ':' || IFNULL(SUM(melhor),0) FROM answers) AS a,
-        (SELECT COUNT(*) || ':' || IFNULL(MAX(id),0) FROM comments) AS c,
-        (SELECT COUNT(*) || ':' || IFNULL(SUM(reaction = 'like'),0) FROM likes) AS l,
-        (SELECT COUNT(*) FROM follows) AS f,
-        (SELECT COUNT(*) || ':' || IFNULL(SUM(length(sobre)),0) || ':' || IFNULL(SUM(length(foto)),0) FROM users) AS u,
-        (SELECT COUNT(*) || ':' || IFNULL(MAX(id),0) || ':' || IFNULL(SUM(is_read),0) FROM messages WHERE sender_id = ?1 OR receiver_id = ?1) AS m,
-        (SELECT COUNT(*) || ':' || IFNULL(MAX(id),0) || ':' || IFNULL(SUM(is_read),0) FROM notifications WHERE user_id = ?1) AS n`)
-      .bind(uid).first();
-    return json({ p: [uid, r.q, r.a, r.c, r.l, r.f, r.u, r.m, r.n].join("|") });
   }
 
   if (method === "POST" && path === "/social/read") {
@@ -906,7 +874,7 @@ async function handleApi(request, env) {
     // Mantém detalhes técnicos apenas nos logs e devolve uma orientação útil ao usuário.
     const detail = String((error && error.message) || error || "");
     console.error("[perguntez] erro interno:", error && error.stack || error);
-    let message = "O servidor não conseguiu concluir esta ação. Tente novamente em instantes.";
+    let message = "O servidor não conseguiu concluir o cadastro. Confira a conexão do banco D1 e os logs do Worker.";
     if (/UNIQUE constraint failed/i.test(detail)) {
       message = "Este nome de usuário ou e-mail já está cadastrado. Tente entrar ou use outros dados.";
       return json({ error: message }, 409);

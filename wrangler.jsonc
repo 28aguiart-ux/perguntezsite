@@ -1,7 +1,15 @@
+// Configuração de deploy para Cloudflare Pages.
+// O binding D1 deve ser conectado no painel Pages > Settings > Bindings,
+// com o nome exatamente DB. Não coloque credenciais ou IDs fictícios aqui.
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "perguntezsite",
+  "pages_build_output_dir": "./public",
   "compatibility_date": "2025-09-01",
-  "assets": {
-    "directory": "./public"
+  "vars": {
+    "ADMIN_USERNAMES": "felipe,fefe"
+  },
+  "observability": {
+    "enabled": true
   }
 }
