@@ -1,0 +1,13 @@
+{
+  "name": "perguntez",
+  "private": true,
+  "scripts": {
+    "dev:pages": "wrangler pages dev public --compatibility-date=2025-09-01 --ip 0.0.0.0 --port 8788",
+    "deploy": "wrangler pages deploy public --project-name perguntez",
+    "deploy:pages": "wrangler pages deploy public --project-name perguntez",
+    "db:schema": "wrangler d1 execute perguntez-db --remote --file=schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.45.0"
+  }
+}

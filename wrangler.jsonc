@@ -1,0 +1,9 @@
+// Este arquivo NÃO tem "pages_build_output_dir" de propósito:
+// assim o Cloudflare Pages usa as configurações do painel
+// (Settings > Bindings > D1 com o nome DB). Se este campo existisse
+// sem o banco D1 declarado aqui, o painel seria ignorado e o site
+// ficaria sem banco de dados — causa comum de "logar, mas não funcionar".
+{
+  "name": "perguntez",
+  "compatibility_date": "2025-09-01"
+}
