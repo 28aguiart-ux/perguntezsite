@@ -4,6 +4,6 @@
 // sem o banco D1 declarado aqui, o painel seria ignorado e o site
 // ficaria sem banco de dados — causa comum de "logar, mas não funcionar".
 {
-  "name": "perguntez",
+  "name": "perguntezsite",
   "compatibility_date": "2025-09-01"
 }
